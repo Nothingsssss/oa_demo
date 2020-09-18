@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		                    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		                    http://www.springframework.org/schema/context
+		                    http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		                    http://www.springframework.org/schema/tx
+		                    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+		                    http://www.springframework.org/schema/aop
+		                    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+    <!--配置数据库外部链接信息-->
+    <context:property-placeholder location="db.properties"/>
+
+    <!--配置数据源-->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="url" value="${url}"/>
+        <property name="driverClassName" value="${driverClassName}"/>
+        <property name="username" value="${uername}"/>
+        <property name="password" value="${password}"/>
+    </bean>
+
+    <!--配置sqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"/>
+      </bean>
+
+    <!--配置mapper扫描器-->
+    <bean id="scannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.zj.oa.mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+    <!--扫描包，托管业务类-->
+    <context:component-scan base-package="com.zj.oa.service"/>
+
+    <!--配置事务-->
+
+    <!--1、配置事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--2、配置事务通知-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="save*" isolation="DEFAULT" propagation="REQUIRED" read-only="false"/>
+            <tx:method name="add*" isolation="DEFAULT" propagation="REQUIRED" read-only="false"/>
+            <tx:method name="update*" isolation="DEFAULT" propagation="REQUIRED" read-only="false"/>
+            <tx:method name="delete*" isolation="DEFAULT" propagation="REQUIRED" read-only="false"/>
+            <tx:method name="*" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+    <!--3、配置切面-->
+    <aop:config>
+        <aop:pointcut expression="execution(* com.zj.oa.service.*.*(..))" id="aopPointcut"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="aopPointcut"/>
+    </aop:config>
+
+    <!--导入相关配置 activiti和shiro的spring整合-->
+    <import resource="applicationContext-activiti.xml"/>
+    <import resource="applicationContext-shiro.xml"/>
+</beans>
