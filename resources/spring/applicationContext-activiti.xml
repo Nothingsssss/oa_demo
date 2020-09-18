@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--spring 创建引擎流对象-->
+    <bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
+        <!--配置数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--配置事务管理，统一管理事务-->
+        <property name="transactionManager" ref="transManager"/>
+        <!--设置建表策略，没有表自动建表-->
+        <property name="databaseSchemaUpdate" value="true"/>
+    </bean>
+
+    <!--创建流程引擎对象-->
+    <bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">
+        <property name="processEngineConfiguration" ref="processEngineConfiguration"/>
+    </bean>
+
+    <!--由流程引擎对象、提供的方法，创建项目中使用的Activiti工作流的service -->
+    <bean id="repositoryService" factory-bean="processEngine" factory-method="getRepositoryService"/>
+    <bean id="runtimeService" factory-bean="processEngine" factory-method="getRuntimeService"/>
+    <bean id="taskService" factory-bean="processEngine" factory-method="getTaskService"/>
+    <bean id="historyService" factory-bean="processEngine" factory-method="getHistoryService"/>
+    <bean id="formService" factory-bean="processEngine" factory-method="getFormService"/>
+</beans>
